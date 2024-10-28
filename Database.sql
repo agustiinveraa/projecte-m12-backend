@@ -12,10 +12,6 @@ CREATE TABLE `user` (
   `birthdate` DATE,
   `pfp` VARCHAR(255) DEFAULT 'assets/user/default.jpg',
   `balance` BIGINT, -- guardar en centimos
-  `cardname` VARCHAR(100),
-  `cardnumber` VARCHAR(16),
-  `cvv` VARCHAR(3),
-  `expiration_date` DATE
 );
 
 CREATE TABLE `game` (
