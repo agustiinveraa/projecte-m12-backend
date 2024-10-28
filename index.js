@@ -3,8 +3,18 @@ import { PORT, SECRET_JWT_KEY } from './config.js'
 import jwt from 'jsonwebtoken'
 import { UserRepository } from './user-repository.js'
 import cookieParser from 'cookie-parser'
+// TODO: import mysql from 'mysql'
 
 const app = express()
+
+// var mysql      = require('mysql');
+// var connection = mysql.createConnection({
+//     host     : 'localhost',
+//     database : 'slots_casino',
+//     user     : 'username',
+//     password : 'password',
+// });
+// ! recuerda cerrar conexion con connection.end();
 
 app.set('view engine', 'ejs')
 
