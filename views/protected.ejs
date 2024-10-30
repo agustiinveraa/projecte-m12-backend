@@ -4,6 +4,9 @@
     </head>
     <body>
         <h1>Protected Page</h1>
-        <p>Welcome to the protected page, <%= user %></p>
+        <p>Welcome to the protected page, <%= user.nickname %></p>
+        <form action="/logout" method="post">
+            <button type="submit">Cerrar Sesión</button>
+        </form>
     </body>
 </html>

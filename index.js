@@ -1,20 +1,18 @@
 import express from 'express'
-import { PORT, SECRET_JWT_KEY } from './config.js'
+import { PORT, SECRET_JWT_KEY, CONNECTION } from './config.js'
 import jwt from 'jsonwebtoken'
 import { UserRepository } from './user-repository.js'
 import cookieParser from 'cookie-parser'
-// TODO: import mysql from 'mysql'
 
 const app = express()
 
-// var mysql      = require('mysql');
-// var connection = mysql.createConnection({
-//     host     : 'localhost',
-//     database : 'slots_casino',
-//     user     : 'username',
-//     password : 'password',
-// });
-// ! recuerda cerrar conexion con connection.end();
+CONNECTION.connect(function (err) {
+  if (err) {
+    console.error('error connecting: ' + err.stack)
+    return
+  }
+  console.log('connected as id ' + CONNECTION.threadId)
+})
 
 app.set('view engine', 'ejs')
 
@@ -31,22 +29,32 @@ app.use((req, res, next) => { // middleware para verificar el token en cada peti
   next() // para que continue con la siguiente peticion
 })
 
+app.get('/formulario', (req, res) => {
+  res.render('formulario');
+});
+
+
 app.get('/', (req, res) => {
-  const { user } = req.session
-  res.render('prueba', user)
-})
+  const user = req.session.user || {};
+  res.render('prueba', { user });
+});
 
 app.post('/login', async (req, res) => {
-  const { username, password } = req.body
+  const { nickname, password } = req.body
+
+  if (!nickname || !password) {
+    return res.status(400).send('Nickname and password are required');
+  }
+
   try {
-    const user = await UserRepository.login({ username, password })
-    const token = jwt.sign({ id: user._id, user: user.username }, SECRET_JWT_KEY, { expiresIn: '1h' })
+    const user = await UserRepository.login({ nickname, password })
+    const token = jwt.sign(user, SECRET_JWT_KEY, { expiresIn: '1h' })
     res
       .cookie('access_token', token, {
-        httpOnly: true, // no se puede acceder desde el front, solo en el servidor (back)
-        secure: process.env.NODE_ENV === 'production', // solo en https (en produccion)
-        sameSite: 'strict', // solo se puede acceder desde el mismo sitio/dominio
-        maxAge: 1000 * 60 * 60 // 1h
+        httpOnly: true, 
+        secure: process.env.NODE_ENV === 'production', // todo: cambiarlo a true  
+        sameSite: 'strict', 
+        maxAge: 1000 * 60 * 60 
       })
       .send({ user })
   } catch (error) {
@@ -55,10 +63,10 @@ app.post('/login', async (req, res) => {
 })
 
 app.post('/register', async (req, res) => {
-  const { username, password } = req.body // ?
+  const { dni, nickname, password, name, surname, birthdate } = req.body
   try {
-    const id = await UserRepository.create({ username, password })
-    res.send({ id })
+    const id = await UserRepository.create({ dni, nickname, password, name, surname, birthdate })
+    res.send('user created')
   } catch (error) {
     // NORMALMENTE POR SEGURIDAD NO SE DEBE DE HACER ASI (se suele hacer con condicional)
     res.status(400).send(error.message)
@@ -66,14 +74,15 @@ app.post('/register', async (req, res) => {
 })
 
 app.post('/logout', (req, res) => {
+  req.session.user = null;
   res.clearCookie('access_token').send('logout')
 })
 
-app.post('/protected', (req, res) => { // aqui uso JWT para las sesiones pero con express session es facil se ve
-  const { user } = req.session
-  if (!user) return res.status(403).send('access denied')
-  res.render('protected', user)
-})
+app.get('/protected', (req, res) => {
+  const { user } = req.session;
+  if (!user) return res.status(403).send('access denied');
+  res.render('protected', { user }); // Pasa user como un objeto
+});
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)

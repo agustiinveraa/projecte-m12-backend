@@ -1,5 +1,7 @@
 <html>
     <body>
-        <h1>Bienvenido <%= user %>!</h1>
+        <h1>Bienvenido, <%= user.nickname || 'invitado' %></h1>
+        <button onclick="window.location.href = '/formulario'">Login/Register</button>
+        <button onclick="window.location.href = '/protected'">Cerrar Sesión</button>
     </body>
 </html>
