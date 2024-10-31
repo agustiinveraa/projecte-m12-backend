@@ -1,13 +1,11 @@
 import express from "express";
-import { PORT, SECRET_JWT_KEY, CONNECTION } from "./config.js";
+import { APP, PORT, SECRET_JWT_KEY, CONNECTION } from "./config.js";
 import jwt from "jsonwebtoken";
 import { UserRepository } from "./user-repository.js";
 import cookieParser from "cookie-parser";
 import axios from "axios";
 import FormData from "form-data";
 import fs from "fs";
-
-const app = express();
 
 CONNECTION.connect(function (err) {
   if (err) {
@@ -17,11 +15,11 @@ CONNECTION.connect(function (err) {
   console.log("connected as id " + CONNECTION.threadId);
 });
 
-app.set("view engine", "ejs");
-app.use(express.json()); // middleware para tratar las siguientes peticiones para req.body
-app.use(cookieParser());
+APP.set("view engine", "ejs");
+APP.use(express.json()); // middleware para tratar las siguientes peticiones para req.body
+APP.use(cookieParser());
 
-app.use((req, res, next) => {
+APP.use((req, res, next) => {
   // middleware para verificar el token en cada peticion
   const token = req.cookies.access_token;
   req.session = { user: null };
@@ -32,16 +30,16 @@ app.use((req, res, next) => {
   next(); // para que continue con la siguiente peticion
 });
 
-app.get("/formulario", (req, res) => {
+APP.get("/formulario", (req, res) => {
   res.render("formulario");
 });
 
-app.get("/", (req, res) => {
+APP.get("/", (req, res) => {
   const user = req.session.user || {};
   res.render("prueba", { user });
 });
 
-app.post("/login", async (req, res) => {
+APP.post("/login", async (req, res) => {
   const { nickname, password } = req.body;
 
   if (!nickname || !password) {
@@ -64,7 +62,7 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.post("/register", async (req, res) => {
+APP.post("/register", async (req, res) => {
   const { dni, nickname, password, name, surname, birthdate } = req.body;
   try {
     const id = await UserRepository.create({
@@ -82,18 +80,18 @@ app.post("/register", async (req, res) => {
   }
 });
 
-app.post("/logout", (req, res) => {
+APP.post("/logout", (req, res) => {
   req.session.user = null;
   res.clearCookie("access_token").send("logout");
 });
 
-app.get("/protected", (req, res) => {
+APP.get("/protected", (req, res) => {
   const { user } = req.session;
   if (!user) return res.status(403).send("access denied");
   res.render("protected", { user }); // Pasa user como un objeto
 });
 
-app.listen(PORT, () => {
+APP.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
