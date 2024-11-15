@@ -30,7 +30,6 @@ app.use((req, res, next) => {
   next(); // para que continue con la siguiente peticion
 });
 
-// probando neovim
 app.get("/formulario", (req, res) => {
   res.render("formulario");
 });
@@ -90,7 +89,36 @@ app.post("/logout", (req, res) => {
 app.get("/protected", (req, res) => {
   const { user } = req.session;
   if (!user) return res.status(403).send("access denied");
-  res.render("protected", { user }); // Pasa user como un objeto
+  res.send({ user });
+});
+
+app.post('/transaction', async (req, res) => {
+  const { identifier, amount } = req.body;
+
+  if (!identifier || !amount) {
+    return res.status(400).json({ message: 'DNI o nickname y monto son requeridos' });
+  }
+
+  try {
+    const user = req.session.user || {};
+    // Llamamos al repositorio para realizar la transacción
+    await UserRepository.transaction({ identifier, amount });
+    res.status(200).json({ message: 'Transacción realizada con éxito', user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.get('/balance', async (req, res) => {
+  try {
+    const user = req.session.user || {};
+    const balance = await UserRepository.getBalance(user.dni);
+    res.status(200).json({ balance });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
 });
 
 app.listen(PORT, () => {
