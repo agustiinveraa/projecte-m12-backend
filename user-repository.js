@@ -41,7 +41,7 @@ export class UserRepository {
       "SELECT * FROM users WHERE nickname = ?",
       [nickname]
     );
-    if (existingUser.length === 0) throw new Error("nickname already exists");
+    if (existingUser.length === 0) throw new Error("user no exists");
 
     const isValid = await bcrpyt.compare(password, existingUser[0].password);
     if (!isValid) throw new Error("password doesn't match");
