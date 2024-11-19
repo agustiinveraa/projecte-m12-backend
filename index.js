@@ -3,6 +3,8 @@ import { PORT, SECRET_JWT_KEY, CONNECTION } from "./config.js";
 import jwt from "jsonwebtoken";
 import { UserRepository } from "./user-repository.js";
 import cookieParser from "cookie-parser";
+import upload from "./upload.js";
+import path from "path";
 
 const app = express();
 
@@ -15,6 +17,9 @@ CONNECTION.connect(function (err) {
 });
 
 app.set("view engine", "ejs");
+
+// Middleware para Servir archivos estáticos desde la carpeta "uploads"
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 app.use(express.json()); // middleware para tratar las siguientes peticiones para req.body
 app.use(cookieParser());
@@ -118,6 +123,65 @@ app.get('/balance', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: error.message });
+  }
+});
+
+
+// Endpoint para actualizar la foto de perfil
+app.post('/update-profile-picture', upload.single('profile_picture'), async (req, res) => {
+  try {
+      const userId = req.body.user_id; // ID del usuario desde el body
+      if (!req.file) {
+          return res.status(400).json({ message: "Profile picture file is required" });
+      }
+
+      const profilePicturePath = `/uploads/${req.file.filename}`; // Ruta de la imagen subida
+
+      // Llama al método del repositorio
+      const result = await UserRepository.updateProfilePicture({
+          userId,
+          profilePicturePath,
+      });
+
+      res.status(200).json({
+          message: result.message,
+          profilePicture: profilePicturePath,
+      });
+  } catch (error) {
+      res.status(500).json({
+          message: "Error updating profile picture",
+          error: error.message,
+      });
+  }
+});
+
+// Endpoint para obtener la foto de perfil según el id del usuario
+app.get('/profile-picture/:nickname', async (req, res) => {
+  const { nickname } = req.params; // Obtenemos el ID del usuario desde los parámetros de la URL
+
+  try {
+    // Consultamos la base de datos para obtener la ruta de la imagen de perfil
+    const [user] = await CONNECTION.promise().query(
+      "SELECT src FROM users WHERE nickname = ?",
+      [nickname]
+    );
+
+    // Si el usuario no existe, respondemos con un error 404
+    if (user.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Recuperamos la ruta de la imagen
+    const profilePicture = user[0].src;
+    if (!profilePicture) {
+      return res.status(404).json({ message: "Profile picture not found" });
+    }
+
+    // Devolvemos la URL completa de la imagen de perfil
+    return res.status(200).json({ profilePicture: `http://localhost:3000${profilePicture}` });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Error fetching profile picture", error: error.message });
   }
 });
 

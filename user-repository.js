@@ -81,6 +81,25 @@ export class UserRepository {
     return result[0].balance;
   }
 
+  static async updateProfilePicture({ userId, profilePicturePath }) {
+    console.log("hola")
+    return new Promise((resolve, reject) => {
+        const query = `
+            UPDATE users
+            SET src = ?
+            WHERE id = ?;
+        `;
+
+        CONNECTION.query(query, [profilePicturePath, userId], (err, results) => {
+            if (err) {
+                return reject(err);
+            }
+
+            resolve({ message: "Profile picture updated successfully" });
+        });
+    });
+  }
+
 }
 
 class Validation {
