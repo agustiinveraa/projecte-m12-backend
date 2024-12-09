@@ -49,6 +49,19 @@ export class UserRepository {
     return existingUser[0];
   }
 
+  // TODO: Hacer que cuando se borre la cuenta no pete el backend
+  static async delete({ nickname }) {
+    console.log(nickname)
+    const [result] = await CONNECTION.promise().query(
+      "DELETE FROM users WHERE nickname = ?",
+      [nickname]
+    );
+
+    if (result.affectedRows === 0) throw new Error("user no exists");
+
+    return { message: "User deleted successfully" };
+  }
+
   static async transaction({ identifier, amount }) {
     if (amount <= 0) throw new Error("Amount must be greater than zero");
   
@@ -115,12 +128,7 @@ class Validation {
       throw new Error("dni number does not match the letter");
   }
   static nickname(nickname) {
-    if (typeof nickname !== "string")
-      throw new Error("nickname must be a string");
-    if (nickname.length < 3 || nickname.length > 20)
-      throw new Error("nickname min 3 length and max 20 length");
-    if (nickname.includes(" "))
-      throw new Error("nickname cannot contain spaces");
+
   }
   static email(email) {
     if (typeof email !== "string") throw new Error("email must be a string");
