@@ -126,6 +126,24 @@ app.post('/transaction', async (req, res) => {
   }
 });
 
+app.post('/substract-balance', async (req, res) => {
+  const { identifier, amount } = req.body;
+
+  if (!identifier || !amount) {
+    return res.status(400).json({ message: 'DNI o nickname y monto son requeridos' });
+  }
+
+  try {
+    const user = req.session.user || {};
+    // Llamamos al repositorio para realizar la transacción
+    await UserRepository.substractBalance({ identifier, amount });
+    res.status(200).json({ message: 'Transacción realizada con éxito', user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
 app.get('/balance', async (req, res) => {
   try {
     const user = req.session.user || {};

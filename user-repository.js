@@ -78,6 +78,22 @@ export class UserRepository {
     }
   }
 
+  static async substractBalance({ identifier, amount }) {
+    if (amount <= 0) throw new Error("Amount must be greater than zero");
+  
+    // Verifica si identifier es un dni o un nickname
+    const condition = /^\d{8}[A-Z]$/.test(identifier) ? 'dni' : 'nickname';
+
+    const [result] = await CONNECTION.promise().query(
+      `UPDATE users SET balance = balance - ? WHERE ${condition} = ?`,
+      [amount, identifier]
+    );
+  
+    if (result.affectedRows === 0) {
+      throw new Error("User not found or no changes made");
+    }
+  }
+
   static async getBalance(identifier) {
     // Verifica si identifier es un dni o un nickname
     const condition = /^\d{8}[A-Z]$/.test(identifier) ? 'dni' : 'nickname';
