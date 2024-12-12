@@ -79,8 +79,9 @@ export class UserRepository {
   }
 
   static async substractBalance({ identifier, amount }) {
+    if (amount > await this.getBalance(identifier)) throw new Error("Insufficient funds");
     if (amount <= 0) throw new Error("Amount must be greater than zero");
-  
+
     // Verifica si identifier es un dni o un nickname
     const condition = /^\d{8}[A-Z]$/.test(identifier) ? 'dni' : 'nickname';
 
