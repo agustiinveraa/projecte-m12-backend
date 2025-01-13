@@ -79,12 +79,20 @@ export class UserRepository {
   }
 
   static async substractBalance({ identifier, amount }) {
-    if (amount > await this.getBalance(identifier)) throw new Error("Insufficient funds");
-    if (amount <= 0) throw new Error("Amount must be greater than zero");
+    const balance = await this.getBalance(identifier);
+    // console.log(`Current balance: ${balance}, Amount to withdraw: ${amount}`);
+  
+    const numBalance = parseFloat(balance);
+    const numAmount = parseFloat(amount);
 
-    // Verifica si identifier es un dni o un nickname
+    if (numAmount > numBalance) {
+      throw new Error("Insufficient funds");
+    } else if (numAmount < 0) {
+      throw new Error("Amount must be greater than zero");
+    }
+  
     const condition = /^\d{8}[A-Z]$/.test(identifier) ? 'dni' : 'nickname';
-
+  
     const [result] = await CONNECTION.promise().query(
       `UPDATE users SET balance = balance - ? WHERE ${condition} = ?`,
       [amount, identifier]
