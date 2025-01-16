@@ -5,6 +5,7 @@ import { UserRepository } from "./user-repository.js";
 import cookieParser from "cookie-parser";
 import upload from "./upload.js";
 import path from "path";
+import { CLIENT_RENEG_LIMIT } from "tls";
 
 const app = express();
 
@@ -96,8 +97,18 @@ app.post("/delete-account", async (req, res) => {
   try {
     await UserRepository.delete({ nickname });
     res.send("user deleted");
-    setUser
   } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
+app.post("/update-account", async (req, res) => {
+  const { dni, nickname, email, name, surname, balance } = req.body;
+  try {
+    await UserRepository.update({ dni, nickname, email, name, surname, balance });
+    res.send("user updated");
+  } catch (error) {
+    console.error('Error updating user:', error);
     res.status(500).send(error.message);
   }
 });
@@ -149,6 +160,17 @@ app.get('/balance', async (req, res) => {
     const user = req.session.user || {};
     const balance = await UserRepository.getBalance(user.dni);
     res.status(200).json({ balance });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.get('/users', async (req, res) => {
+  try {
+    const result = await UserRepository.getAllUsers();
+    console.log(result);
+    res.status(200).json({ result });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: error.message });

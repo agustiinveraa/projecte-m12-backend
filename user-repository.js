@@ -49,7 +49,6 @@ export class UserRepository {
     return existingUser[0];
   }
 
-  // TODO: Hacer que cuando se borre la cuenta no pete el backend
   static async delete({ nickname }) {
     console.log(nickname)
     const [result] = await CONNECTION.promise().query(
@@ -60,6 +59,28 @@ export class UserRepository {
     if (result.affectedRows === 0) throw new Error("user no exists");
 
     return { message: "User deleted successfully" };
+  }
+
+  static async update({ dni, nickname, email, name, surname, balance }) {
+    try {
+      Validation.dni(dni);
+      Validation.nickname(nickname);
+      Validation.email(email);
+      Validation.name(name);
+      Validation.surname(surname);
+  
+      const [result] = await CONNECTION.promise().query(
+        "UPDATE users SET dni = ?, email = ?, name = ?, surname = ?, balance = ? WHERE nickname = ?",
+        [dni, email, name, surname, balance, nickname]
+      );
+  
+      if (result.affectedRows === 0) throw new Error("user no exists");
+  
+      return { message: "User updated successfully" };
+    } catch (error) {
+      console.error('Error updating user in repository:', error);
+      throw error;
+    }
   }
 
   static async transaction({ identifier, amount }) {
@@ -80,7 +101,7 @@ export class UserRepository {
 
   static async substractBalance({ identifier, amount }) {
     const balance = await this.getBalance(identifier);
-    // console.log(`Current balance: ${balance}, Amount to withdraw: ${amount}`);
+    console.log(`Current balance: ${balance}, Amount to withdraw: ${amount}`);
   
     const numBalance = parseFloat(balance);
     const numAmount = parseFloat(amount);
@@ -136,6 +157,19 @@ export class UserRepository {
             resolve({ message: "Profile picture updated successfully" });
         });
     });
+  }
+
+  static async getAllUsers() {
+  
+    const [result] = await CONNECTION.promise().query(
+      `SELECT * FROM users  WHERE user_type = 'normal'`,
+    );
+  
+    if (result.length === 0) {
+      throw new Error("Empty database");
+    }
+
+    return result;
   }
 
 }
