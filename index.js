@@ -271,6 +271,52 @@ app.get("/tickets", async (req, res) => {
   }
 });
 
+app.post("/update-ticket", async (req, res) => {
+  const { ticketId, status } = req.body;
+
+  if (!ticketId || !status) {
+    return res.status(400).json({ message: "Ticket ID and status are required" });
+  }
+
+  try {
+    await CONNECTION.promise().query("UPDATE tickets SET status = ? WHERE id = ?", [status, ticketId]);
+    res.status(200).json({ message: "Ticket updated successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error updating ticket", error: error.message });
+  }
+});
+
+app.post("/save-transaction", async (req, res) => {
+  const { userId, amount, cardNumber, type } = req.body;
+
+  if (!userId || !amount || !cardNumber || !type) {
+    return res.status(400).json({ message: "User ID, amount, cardNumber and type are required" });
+  }
+
+  try {
+    await CONNECTION.promise().query(
+      "INSERT INTO transactions (id_user, balance, card_number, type) VALUES (?, ?, ?, ?)",
+      [userId, amount, cardNumber, type]
+    );
+
+    res.status(201).json({ message: "Transaction saved successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error saving transaction", error: error.message });
+  }
+});
+
+app.get("/transactions", async (req, res) => {
+  try {
+    const [transactions] = await CONNECTION.promise().query("SELECT * FROM transactions");
+    res.status(200).json({ transactions });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching transactions", error: error.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
