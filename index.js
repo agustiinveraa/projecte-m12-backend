@@ -236,6 +236,41 @@ app.get('/profile-picture/:nickname', async (req, res) => {
   }
 });
 
+
+// Endpoint para crear un ticket
+app.post("/create-ticket", upload.single("photo"), async (req, res) => {
+  const { type, message } = req.body;
+  const photoPath = req.file ? `/uploads/${req.file.filename}` : null; // Ruta de la imagen subida
+  const userId = req.session.user?.id; // ID del usuario desde la sesión
+
+  if (!userId) {
+    return res.status(401).json({ message: "User not authenticated" });
+  }
+
+  try {
+    // Insertar el ticket en la base de datos
+    const [result] = await CONNECTION.promise().query(
+      "INSERT INTO tickets (id_user, email_user, type, img, message, status) VALUES (?, ?, ?, ?, ?, ?)",
+      [userId, req.session.user.email, type, photoPath, message, "unresolved"]
+    );
+
+    res.status(201).json({ message: "Ticket created successfully", ticketId: result.insertId });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error creating ticket", error: error.message });
+  }
+});
+
+app.get("/tickets", async (req, res) => {
+  try {
+    const [tickets] = await CONNECTION.promise().query("SELECT * FROM tickets");
+    res.status(200).json({ tickets }); // Asegúrate de devolver { tickets: [...] }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching tickets", error: error.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

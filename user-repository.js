@@ -172,6 +172,15 @@ export class UserRepository {
     return result;
   }
 
+  static async getUserId(identifier) {
+    const condition = /^\d{8}[A-Z]$/.test(identifier) ? 'dni' : 'nickname';
+    const [result] = await CONNECTION.promise().query(
+      `SELECT id FROM users WHERE ${condition} = ?`,
+      [identifier]
+    );
+    return result.length > 0 ? result[0].id : null;
+  }
+
 }
 
 class Validation {
