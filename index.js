@@ -17,6 +17,7 @@ CONNECTION.connect(function (err) {
   console.log("connected as id " + CONNECTION.threadId);
 });
 
+
 app.set("view engine", "ejs");
 
 // Middleware para Servir archivos estáticos desde la carpeta "uploads"
@@ -109,6 +110,17 @@ app.post("/update-account", async (req, res) => {
     res.send("user updated");
   } catch (error) {
     console.error('Error updating user:', error);
+    res.status(500).send(error.message);
+  }
+});
+
+app.post("/change-password", async (req, res) => {
+  const { email, newPassword } = req.body;
+  try {
+    await UserRepository.changePassword({ email, newPassword });
+    res.send("password updated");
+  } catch (error) {
+    console.error('Error updating password user:', error);
     res.status(500).send(error.message);
   }
 });

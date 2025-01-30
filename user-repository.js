@@ -83,6 +83,25 @@ export class UserRepository {
     }
   }
 
+  static async changePassword({ email, newPassword }) {
+    try {
+      Validation.password(newPassword);
+  
+      const hashedPassword = await bcrpyt.hash(newPassword, SALT_ROUNDS);
+      const [result] = await CONNECTION.promise().query(
+        "UPDATE users SET password = ? WHERE email = ?",
+        [hashedPassword, email]
+      );
+  
+      if (result.affectedRows === 0) throw new Error("user no exists");
+  
+      return { message: "Password updated successfully" };
+    } catch (error) {
+      console.error('Error updating user in repository:', error);
+      throw error;
+    }
+  }
+
   static async transaction({ identifier, amount }) {
     if (amount <= 0) throw new Error("Amount must be greater than zero");
   
