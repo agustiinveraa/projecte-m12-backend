@@ -205,32 +205,32 @@ export class UserRepository {
 class Validation {
   static dni(dni) {
     if (!/^\d{8}[A-Z]$/.test(dni))
-      throw new Error("dni must contain exactly 8 digits followed by a letter");
+      throw new Error("DNI must contain exactly 8 digits followed by a letter");
 
     const letters = "TRWAGMYFPDXBNJZSQVHLCKE";
     const number = parseInt(dni.slice(0, 8), 10);
     const letter = dni[8];
     const correctLetter = letters[number % 23];
     if (letter !== correctLetter)
-      throw new Error("dni number does not match the letter");
+      throw new Error("DNI number does not match the letter");
   }
   static nickname(nickname) {
 
   }
   static email(email) {
-    if (typeof email !== "string") throw new Error("email must be a string");
+    if (typeof email !== "string") throw new Error("Email must be a string");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-      throw new Error("email must be in format");
+      throw new Error("Email must be in format");
   }
   static password(password) {
     if (typeof password !== "string")
-      throw new Error("password must be a string");
+      throw new Error("Password must be a string");
     if (password.length < 8)
-      throw new Error("password must be at least 8 characters long");
+      throw new Error("Password must be at least 8 characters long");
     if (password.includes(" "))
-      throw new Error("password cannot contain spaces");
+      throw new Error("Password cannot contain spaces");
     if (/^[_.!@#$%^&]/.test(password))
-      throw new Error("password cannot start with a special character");
+      throw new Error("Password cannot start with a special character");
     if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[_.!@#$%^&])/.test(password))
       throw new Error(
         "The password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
@@ -240,18 +240,18 @@ class Validation {
     if (typeof name !== "string") throw new Error("name must be a string");
     if (name.length < 3) throw new Error("name min 3 length");
     if (/(?=.*[_.!@#$%^&])/.test(name))
-      throw new Error("name cannot contain special characters");
+      throw new Error("Name cannot contain special characters");
   }
   static surname(surname) {
     if (typeof surname !== "string")
-      throw new Error("surname must be a string");
-    if (surname.length < 3) throw new Error("surname min 3 length");
+      throw new Error("Surname must be a string");
+    if (surname.length < 3) throw new Error("Surname min 3 length");
     if (/(?=.*[_.!@#$%^&])/.test(surname))
-      throw new Error("surname cannot contain special characters");
+      throw new Error("Surname cannot contain special characters");
   }
   static birthdate(birthdate) {
     if (typeof birthdate !== "string")
-      throw new Error("birthdate must be a string");
+      throw new Error("Birthdate must be a string");
     if (!/^\d{4}-\d{2}-\d{2}$/.test(birthdate))
       throw new Error("birthdate must be in format DD-MM-YYYY");
 
@@ -259,7 +259,7 @@ class Validation {
     var currentYear = new Date().getFullYear() - 18;
     if (year < 1900 || year > currentYear)
       throw new Error(
-        "birthdate year must be between 1900 and the current year, and you have to be 18 years or older"
+        "Birthdate year must be between 1900 and the current year, and you have to be 18 years or older"
       );
   }
 }
